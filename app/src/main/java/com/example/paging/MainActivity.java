@@ -11,12 +11,18 @@ import androidx.paging.PagedListAdapter;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.databinding.DataBindingUtil;
+import androidx.databinding.ObservableField;
+
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import com.example.paging.databinding.ActivityMainBinding;
+import com.example.paging.databinding.ItemRecyclerviewBinding;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -32,12 +38,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        recyclerView = findViewById(R.id.recyclerView);
+        //setContentView(R.layout.activity_main);
+        //recyclerView = findViewById(R.id.recyclerView);
+        ActivityMainBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+
         final MainRecyclerViewAdapter adapter = new MainRecyclerViewAdapter();
-        recyclerView.setAdapter(adapter);
+        binding.recyclerView.setAdapter(adapter);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(layoutManager);
+        binding.recyclerView.setLayoutManager(layoutManager);
 
         //레트로핏 초기화 과정
         Retrofit retrofit = new Retrofit.Builder()
@@ -131,27 +139,39 @@ public class MainActivity extends AppCompatActivity {
         @NonNull
         @Override
         public MainRecyclerViewViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_recyclerview, parent, false);
-            return new MainRecyclerViewViewHolder(itemView);
+            ItemRecyclerviewBinding binding = DataBindingUtil.inflate(LayoutInflater.from(parent.getContext()),
+                    R.layout.item_recyclerview, parent, false);
+            return new MainRecyclerViewViewHolder(binding);
         }
 
         @Override
         public void onBindViewHolder(@NonNull MainRecyclerViewViewHolder holder, int position) {
             Result item = getItem(position);
-            holder.setTitle(item.name);
+            holder.bind(item);
         }
     }
 
     private static class MainRecyclerViewViewHolder extends RecyclerView.ViewHolder{
-        private final TextView title;
+        private final ViewModel viewModel;
 
-        public MainRecyclerViewViewHolder(View itemView){
-            super(itemView);
-            title = itemView.findViewById(R.id.title);
+        //데이터 바인딩을 사용하는 뷰 홀더 생성자
+        public MainRecyclerViewViewHolder(ItemRecyclerviewBinding binding){
+            super(binding.getRoot());
+            viewModel = new ViewModel();
+            binding.setViewModel(viewModel);
         }
 
-        public void setTitle(String title){
-            this.title.setText(title);
+        //모델을 받아 뷰 모델을 채우는 bind 메서드
+        public void bind(Result item){
+            viewModel.name.set(item.name);
+            viewModel.url.set(item.url);
         }
+    }
+
+
+    public static class ViewModel{
+
+        public ObservableField<String> name = new ObservableField<>();
+        public ObservableField<String> url = new ObservableField<>();
     }
 }
