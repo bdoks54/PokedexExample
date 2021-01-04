@@ -15,6 +15,8 @@ import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ObservableField;
 
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -173,5 +175,14 @@ public class MainActivity extends AppCompatActivity {
 
         public ObservableField<String> name = new ObservableField<>();
         public ObservableField<String> url = new ObservableField<>();
+
+        public void openDetail(View view){
+            String[] parts = url.get().split("/");
+            int pid = Integer.parseInt(parts[6]);
+            Context context = view.getContext();
+            Intent intent = new Intent(context, DetailActivity.class);
+            intent.putExtra("pid", pid);
+            context.startActivity(intent);
+        }
     }
 }
